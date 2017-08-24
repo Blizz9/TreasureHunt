@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="TreasureHunt">
+
+<head>
+    <title>Treaure Hunt</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+    <script>
+        angular.module('TreasureHunt', [])
+        .controller('Name', function($scope, $http, $location) {
+            $http.get('http://' + $location.host() + ':' + $location.port() + '/NameValue').
+                then(function(response) {
+                    console.log($location.absUrl());
+                    $scope.name = response.data;
+                });
+        });
+    </script>
+</head>
+
+<body>
+    <div ng-controller="Name">
+        <p>First Name: {{name.First}}</p>
+        <p>Last Name: {{name.Last}}</p>
+    </div>
+</body>
+
+</html> 
