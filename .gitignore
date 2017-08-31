@@ -1,1 +1,3 @@
 *.exe
+iOS/*.xcodeproj/*
+!iOS/*.xcodeproj/project.pbxproj
