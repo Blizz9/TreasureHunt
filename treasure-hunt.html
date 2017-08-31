@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html ng-app="TreasureHunt">
+
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+
+    <script src="https://maps.google.com/maps/api/js?key=AIzaSyAPwv2SRgDgGe-KRf2L94D9cO58tEePl18&libraries=placeses,visualization,drawing,geometry,places"></script>
+    <script src="angular.js"></script>
+    <script src="ng-map.js"></script>
+
+    <script>
+        angular.module('TreasureHunt', ['ngMap']).controller('MapController', function($scope, $http, $location, $sce, NgMap) {
+            var map;
+            var mapc = this;
+
+            NgMap.getMap().then(function(ngMap) {
+                map = ngMap;
+            });
+
+            mapc.latlng = [38.292737, -85.508311];
+            mapc.radius = 3500;
+        
+            mapc.getRadius = function(event) {
+                alert('this circle has radius ' + this.getRadius());
+            }
+
+            mapc.setCenter = function(event) {
+                console.log('Location: ', event.latLng.lat(), ', ', event.latLng.lng());
+                map.setCenter(event.latLng);
+
+                $http.get('http://' + $location.host() + ':' + $location.port() + '/shrines').then(function(response) {
+                    console.log(response.data);
+                    $scope.shrines = response.data;
+                });
+
+                //$scope.markers = $sce.trustAsHtml('<marker position="[38.292737, -85.508311]"></marker>');
+                //$scope.markers = $sce.trustAsHtml("Blah");
+                //$scope.markers = $scope.markers + $sce.trustAsHtml("Blah2");
+            }
+
+            mapc.foo = function(event, arg1, arg2) {
+                alert('this is at '+ this.getPosition());
+                alert(arg1+arg2);
+            }
+
+            mapc.dragStart = function(event) {
+                console.log("drag started");
+            }
+
+            mapc.drag = function(event) {
+                console.log("dragging");
+            }
+
+            mapc.dragEnd = function(event) {
+                console.log("drag ended");
+            }
+        });
+    </script>
+</head>
+
+<body ng-controller="MapController as mapc">
+    Events are applied to map, markers, and shapes.
+    <br/>
+    All event-related attributes are preceded by 'on-', i.e. on-click, on-mouseover, etc
+    <br/>
+    Working?: {{shrines[0].Latitude}}
+    <br/>
+    <ng-map zoom="11" center="{{mapc.latlng}}" on-click="mapc.setCenter(event)" tilt="0">
+    <div>
+        <marker position="[{{shrines[0].Latitude}}, {{shrines[0].Longitude}}]" on-click="mapc.foo(2,3)"></marker>
+        <marker position="[{{shrines[1].Latitude}}, {{shrines[1].Longitude}}]" on-click="mapc.foo(2,3)"></marker>
+        <marker position="[{{shrines[2].Latitude}}, {{shrines[2].Longitude}}]" on-click="mapc.foo(2,3)"></marker>
+        <marker position="[{{shrines[3].Latitude}}, {{shrines[3].Longitude}}]" on-click="mapc.foo(2,3)"></marker>
+        <marker position="[{{shrines[4].Latitude}}, {{shrines[4].Longitude}}]" on-click="mapc.foo(2,3)"></marker>
+        <marker position="[{{shrines[5].Latitude}}, {{shrines[5].Longitude}}]" on-click="mapc.foo(2,3)"></marker>
+        <marker position="[{{shrines[6].Latitude}}, {{shrines[6].Longitude}}]" on-click="mapc.foo(2,3)"></marker>
+        <marker position="[{{shrines[7].Latitude}}, {{shrines[7].Longitude}}]" on-click="mapc.foo(2,3)"></marker>
+        <marker position="[{{shrines[8].Latitude}}, {{shrines[8].Longitude}}]" on-click="mapc.foo(2,3)"></marker>
+        <marker position="[{{shrines[9].Latitude}}, {{shrines[9].Longitude}}]" on-click="mapc.foo(2,3)"></marker>
+    </div>
+    <!-- <shape name="circle" stroke-color='#FF0000' stroke-weight="2"
+        center="{{mapc.latlng}}" radius="{{mapc.radius}}"
+        on-click="mapc.getRadius()"
+        draggable="true"
+        on-dragstart="mapc.dragStart()"
+        on-drag="mapc.drag()"
+        on-dragend="mapc.dragEnd()">
+    </shape> -->
+    </ng-map>
+</body>
+</html>
