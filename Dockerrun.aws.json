@@ -1,0 +1,17 @@
+{
+  "AWSEBDockerrunVersion": "1",
+  "Authentication": {
+    "Bucket": "com.pixelismgames.dockerhubauth",
+    "Key": ".dockercfg.json"
+  },
+  "Image": {
+    "Name": "blizz9/treasurehunt",
+    "Update": "true"
+  },
+  "Ports": [
+    {
+      "ContainerPort": "8080"
+    }
+  ],
+  "Logging": "/var/log"
+}

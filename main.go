@@ -1,45 +1,56 @@
+// Package main is my ARG game idea.
 package main
 
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"math"
 	"net/http"
 	"strconv"
+	"time"
 )
 
-const (
-	port       = 8080
-	bufferSize = 1024
-)
+const earthRadius = 6378100
 
-type name struct {
-	First string
-	Last  string
+// Shrine is hidden locations in the world.
+type Shrine struct {
+	ShrineID     string
+	Latitude     float64 `json:"Latitude,string"`
+	Longitude    float64 `json:"Longitude,string"`
+	ShrineNumber int
+	ShrineType   int
 }
+
+// LocationQuery is a user in the world looking for shrines.
+type LocationQuery struct {
+	UserID    string
+	Timestamp int64
+	Latitude  float64 `json:"Latitude,string"`
+	Longitude float64 `json:"Longitude,string"`
+}
+
+var shrines []Shrine
 
 func main() {
-	http.Handle("/", http.FileServer(http.Dir(".")))
+	shrines = retreiveShrines()
 
-	http.HandleFunc("/Name", nameHandler)
-	http.HandleFunc("/NameValue", nameValueHandler)
+	// for _, shrine := range shrines {
+	// 	fmt.Println(shrine.Latitude, ",", shrine.Longitude)
+	// }
 
-	panic(http.ListenAndServe(":"+strconv.Itoa(port), nil))
+	//http.Handle("/", http.FileServer(http.Dir(".")))
+
+	http.HandleFunc("/test", testHandler)
+	http.HandleFunc("/isnearshrines", isNearShrinesHandler)
+	http.HandleFunc("/isinshrine", isInShrineHandler)
+
+	panic(http.ListenAndServe(":8080", nil))
 }
 
-func nameHandler(w http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadFile("name.html")
-	if err != nil {
-		http.Error(w, "Could not find name.html file.", http.StatusInternalServerError)
-		return
-	}
-	fmt.Fprintf(w, "%s", body)
-}
+func testHandler(w http.ResponseWriter, r *http.Request) {
+	locationQuery := LocationQuery{"9", time.Now().UnixNano() / int64(time.Millisecond), 30, -85}
 
-func nameValueHandler(w http.ResponseWriter, r *http.Request) {
-	nameValue := name{First: "Nick", Last: "Blizard"}
-
-	json, err := json.Marshal(nameValue)
+	json, err := json.Marshal(locationQuery)
 	if err != nil {
 		http.Error(w, "Unable to format JSON response.", http.StatusInternalServerError)
 		return
@@ -47,4 +58,68 @@ func nameValueHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(json)
+}
+
+func isNearShrinesHandler(w http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("userid")
+	latitude, _ := strconv.ParseFloat(r.URL.Query().Get("latitude"), 64)   //38.292743
+	longitude, _ := strconv.ParseFloat(r.URL.Query().Get("longitude"), 64) //-85.508319
+	locationQuery := LocationQuery{userID, time.Now().UnixNano() / int64(time.Millisecond), latitude, longitude}
+
+	nearShrines := searchForShrines(locationQuery, 2000)
+
+	json, err := json.Marshal(nearShrines)
+	if err != nil {
+		http.Error(w, "Unable to format JSON response.", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(json)
+}
+
+func isInShrineHandler(w http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("userid")
+	latitude, _ := strconv.ParseFloat(r.URL.Query().Get("latitude"), 64)   //38.292743
+	longitude, _ := strconv.ParseFloat(r.URL.Query().Get("longitude"), 64) //-85.508319
+	locationQuery := LocationQuery{userID, time.Now().UnixNano() / int64(time.Millisecond), latitude, longitude}
+
+	nearShrines := searchForShrines(locationQuery, 150)
+
+	json, err := json.Marshal(len(nearShrines) > 0)
+	if err != nil {
+		http.Error(w, "Unable to format JSON response.", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(json)
+}
+
+func searchForShrines(locationQuery LocationQuery, maximumDistance int) []Shrine {
+	nearShrines := []Shrine{}
+
+	storeLocationQuery(locationQuery)
+
+	latitude := locationQuery.Latitude * math.Pi / 180
+	longitude := locationQuery.Longitude * math.Pi / 180
+
+	for _, shrine := range shrines {
+		shrineLatitude := shrine.Latitude * math.Pi / 180
+		shrineLongitude := shrine.Longitude * math.Pi / 180
+
+		havdr := hav(shrineLatitude-latitude) + math.Cos(latitude)*math.Cos(shrineLatitude)*hav(shrineLongitude-longitude)
+		distance := 2 * earthRadius * math.Asin(math.Sqrt(havdr))
+
+		if distance < float64(maximumDistance) {
+			fmt.Println(distance)
+			nearShrines = append(nearShrines, shrine)
+		}
+	}
+
+	return nearShrines
+}
+
+func hav(theta float64) float64 {
+	return math.Pow(math.Sin(theta/2), 2)
 }

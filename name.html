@@ -8,9 +8,8 @@
     <script>
         angular.module('TreasureHunt', [])
         .controller('Name', function($scope, $http, $location) {
-            $http.get('http://' + $location.host() + ':' + $location.port() + '/NameValue').
+            $http.get('http://' + $location.host() + ':' + $location.port() + '/namevalue').
                 then(function(response) {
-                    console.log($location.absUrl());
                     $scope.name = response.data;
                 });
         });
