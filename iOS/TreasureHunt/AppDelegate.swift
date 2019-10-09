@@ -15,15 +15,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
     var window: UIWindow?
     var locationManager: CLLocationManager!
 
-    var isMonitoringSignificant = false
+    //var isMonitoringSignificant = false
     
-    var locationHistory = [CLLocationCoordinate2D]()
+    //var locationHistory = [CLLocationCoordinate2D]()
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         logMessage("Application Started")
         
         let deviceID = UIDevice.current.identifierForVendor?.uuidString
-        logMessage("Vendor ID: \(deviceID)")
+        logMessage("Vendor ID: \(String(describing: deviceID))")
         
         logMessage("Home Directory: \(NSHomeDirectory())")
         
@@ -39,7 +39,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
             //locationManager.startMonitoringSignificantLocationChanges()
             locationManager.startUpdatingLocation()
             
-            isMonitoringSignificant = false
+            //isMonitoringSignificant = false
         }
         
         // prints out current contents of log file as it starts
@@ -101,7 +101,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation])
     {
         let location = locations.last! as CLLocation
+        let deviceID = UIDevice.current.identifierForVendor?.uuidString
         
+        logMessage("Detailed Location: \(location.coordinate.latitude.description),\(location.coordinate.longitude.description) | \(String(describing: deviceID))")
+        
+        /*
         if (isMonitoringSignificant) {
             logMessage("Significant Location: \(location.coordinate.latitude.description),\(location.coordinate.longitude.description)")
             
@@ -157,6 +161,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
                 logMessage("Waiting on 100 location samples: \(locationHistory.count)")
             }
         }
+        */
     }
     
     func logMessage(_ message: String) {
